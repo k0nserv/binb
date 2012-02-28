@@ -491,6 +491,27 @@ var App = {
 			volumecurrent.height(totalheight - newtop );
 			volumecurrent.css('top', totalposition.top + newtop);
 		};
+                
+                /* Load the volume from cookies */
+                var loadVolume = function(){
+                    var cookies = document.cookie.split(";");
+                    for ( var i = 0; i < cookies.length; i++ ){
+                        var current = cookies[i];
+                        var exists = current.indexOf("volume=") != -1;
+                        var parts  = current.split("=");
+                        if (  exists ){
+                            var volume = parseInt( parts[1] );
+                            positionVolumeHandle(volume/100);
+                            setJPlayerVolume(volume/100);
+                        }
+                    }
+                    //No need to set the default value since it 1
+                }
+                
+                var setVolumeCookie = function(value){
+                    var cookie = "volume="+escape(value)+";";
+                    document.cookie = cookie;
+                }
 
 		var handleIcon = function (volume) {
 			if (volume === 0) {
@@ -503,6 +524,7 @@ var App = {
 				icon.removeClass().addClass('volume-medium');
 			}
 			else {
+
 				icon.removeClass().addClass('volume-high');
 			}
 		};
@@ -524,14 +546,19 @@ var App = {
 			volumehandle.css('top', totalTop + newy - (volumehandle.height() / 2));
 			volumecurrent.height(railheight - newy);
 			volumecurrent.css('top',newy+totalTop);
-
-			volume = Math.max(0,volume);
-			volume = Math.min(volume,1);
-
-			handleIcon(volume);
-			oldvalue = volume;
-			App.jplayer.jPlayer("volume", volume);	
+                        setJPlayerVolume(volume);
+                        setVolumeCookie(volume*100);
 		};
+                
+                var setJPlayerVolume = function(volume){
+                    volume = Math.max(0,volume);
+                    volume = Math.min(volume,1);
+                    handleIcon(volume);
+                    oldvalue = volume;
+                    App.jplayer.jPlayer("volume", volume);	
+                }
+
+
 
 		volumebutton.hover(function() {
 			volumeslider.show();
@@ -580,7 +607,7 @@ var App = {
 				}
 			}
 		});
-		positionVolumeHandle(1);
+		loadVolume();
 	},
 
 	// Set up the App object.
@@ -594,7 +621,8 @@ var App = {
 				}
 			});
 		}
-		App.socket = io.connect("http://binb.nodejitsu.com/", {'reconnect':false});
+		
+                App.socket = io.connect("http://binb.nodejitsu.com/", {'reconnect':false});
 		App.socket.on("connect", function() {
 			App.jplayer = $("#player").jPlayer({
 				ready: function() {
