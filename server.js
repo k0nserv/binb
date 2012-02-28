@@ -119,6 +119,11 @@ var Game = {
 			recipient.emit('chatmsg', {from:data.from,to:data.to,chatmsg:data.chatmsg});
 			return;
 		}
+                var artistname = Game.artistName.toLowerCase();
+                var trackname = Game.trackName.toLowerCase();
+                if ( Game.amatch(artistname,data.chatmsg,true) || Game.amatch(trackname,data.chatmsg,true) ){
+                    data.chatmsg = data.chatmsg.replace(/./g,"*");
+                }
 		io.sockets.emit('chatmsg', {from:data.from,chatmsg:data.chatmsg});
 	},
 
